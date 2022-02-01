@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 @parameters([Property.Actor(label="Base",  description="Select the actor you would like to add a dependency to."),
             Property.Sensor(label="SensorDependency", description="Select the sensor that the base actor will depend upon."),
-            Property.Number(label="SensorValue", description="Input the sensor value needed to switch the 'Base Actor' ON.")
+            Property.Number(label="SensorValue", description="Input the sensor value needed to switch the 'Base Actor' ON."),
             Property.Select(label="notification", options=["Yes", "No"], description="Will show notifications in case of errors if set to yes")])
 
 class DependentActorSensor(CBPiActor):
