@@ -28,7 +28,7 @@ class DependentActorSensor(CBPiActor):
 
     async def on(self, power=0):
         sensor_dependency = self.cbpi.sensor.find_by_id(self.SensorDependency)
-        sensor_value = self.get_sensor_value(self.props.get("SensorDependency", None)).get("value")
+        sensor_value = sensor_dependency.get("value")
         
         if sensor_value >= self.SensorValue:
             await self.cbpi.actor.on(self.base)
