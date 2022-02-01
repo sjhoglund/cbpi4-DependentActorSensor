@@ -1,4 +1,3 @@
-
 # -*- coding: utf-8 -*-
 import os
 from aiohttp import web
@@ -7,71 +6,59 @@ from unittest.mock import MagicMock, patch
 import asyncio
 import random
 from cbpi.api import *
+from cbpi.api.dataclasses import NotificationAction, NotificationType
 
 logger = logging.getLogger(__name__)
 
+@parameters([Property.Actor(label="Base",  description="Select the actor you would like to add a dependency to."),
+            Property.Sensor(label="SensorDependency", description="Select the sensor that the base actor will depend upon."),
+            Property.Number(label="SensorValue", description="Input the sensor value needed to switch the 'Base Actor' ON.")
+            Property.Select(label="notification", options=["Yes", "No"], description="Will show notifications in case of errors if set to yes")])
 
-class CustomWebExtension(CBPiExtension):
+class DependentActorSensor(CBPiActor):
 
-    @request_mapping(path="/", auth_required=False)
-    async def hello_world(self, request):
-        return web.HTTPFound('static/index.html')
-
-    def __init__(self, cbpi):
-        self.cbpi = cbpi
-        path = os.path.dirname(__file__)
-        self.cbpi.register(self, "/cbpi_uiplugin", static=os.path.join(path, "static"))
-
-
-@parameters([])
-class CustomSensor(CBPiSensor):
-    
-    def __init__(self, cbpi, id, props):
-        super(CustomSensor, self).__init__(cbpi, id, props)
-        self.value = 0
-
-    @action(key="Test", parameters=[])
-    async def action1(self, **kwargs):
-        print("ACTION!", kwargs)
-
-    async def run(self):
-        while self.running is True:
-            self.value = random.randint(0,50)
-            self.push_update(self.value)
-            await asyncio.sleep(1)
-    
-    def get_state(self):
-        return dict(value=self.value)
-
-@parameters([])
-class CustomActor(CBPiActor):
-
-    @action("action", parameters={})
-    async def action(self, **kwargs):
-        print("Action Triggered", kwargs)
-        pass
-    
-    def init(self):
+    def on_start(self):
         self.state = False
+        self.base = self.props.get("Base", None)
+        self.SensorDependency = self.props.get("SensorDependency", None)
+        self.SensorValue = self.props.get("SensorValue", 0)
+        self.notification = self.props.get("notification", "Yes")
+        self.init = False
         pass
 
     async def on(self, power=0):
-        logger.info("ACTOR 1111 %s ON" % self.id)
-        self.state = True
+        try:
+            SensorDependencyValue = self.get_sensor_value(self.props.get("SensorDependency", 0)).get("value")
+        except:
+            SensorDependencyValue = 0
+        
+        if (SensorDependencyValue > 0) and (SensorDependencyValue >= self.sensor_value):
+            await self.cbpi.actor.on(self.base)
+            self.state = True
+        else:
+            await self.cbpi.actor.off(self.base)
+            self.state = False
+            if self.notification == "Yes":
+                self.cbpi.notify("Powering of Actor prevented", "This is due to the current value of it's dependency %s" %(self.SensorDependency.name) ,NotificationType.ERROR)
+
 
     async def off(self):
-        logger.info("ACTOR %s OFF " % self.id)
+        logger.info("ACTOR %s OFF " % self.base)
+        await self.cbpi.actor.off(self.base)
         self.state = False
 
     def get_state(self):
         return self.state
     
     async def run(self):
+        if self.init == False:
+            if self.base is not None:
+                await self.cbpi.actor.off(self.base)
+                self.state = False
+            self.init = True
         pass
 
 
 def setup(cbpi):
-    #cbpi.plugin.register("MyCustomActor", CustomActor)
-    #cbpi.plugin.register("MyCustomSensor", CustomSensor)
-    #cbpi.plugin.register("MyustomWebExtension", CustomWebExtension)
+    cbpi.plugin.register("Dependent Actor Sensor", DependentActorSensor)
     pass
