@@ -27,6 +27,7 @@ class DependentActorSensor(CBPiActor):
         pass
 
     async def on(self, power=0):
+        sensor_dependency = self.cbpi.sensor.find_by_id(self.SensorDependency)
         try:
             SensorDependencyValue = self.get_sensor_value(self.props.get("SensorDependency", 0)).get("value")
         except:
@@ -39,7 +40,7 @@ class DependentActorSensor(CBPiActor):
             await self.cbpi.actor.off(self.base)
             self.state = False
             if self.notification == "Yes":
-                self.cbpi.notify("Powering of Actor prevented", "This is due to the current value of it's dependency %s" %(self.SensorDependency.name) ,NotificationType.ERROR)
+                self.cbpi.notify("Powering of Actor prevented", "This is due to the current value of it's dependency %s" %(sensor_dependency.name) ,NotificationType.ERROR)
 
 
     async def off(self):
