@@ -31,8 +31,10 @@ class DependentActorSensor(CBPiActor):
         sensor_value = self.cbpi.sensor.get_sensor_value(self.SensorDependency).get("value")
         
         if sensor_value >= self.SensorValue:
-            await self.cbpi.actor.on(self.base)
-            self.state = True
+#             await self.cbpi.actor.on(self.base)
+#             self.state = True
+            if self.notification == "Yes":
+                self.cbpi.notify("Powering of Actor tbd", "This pass %s" %(sensor_dependency.name) ,NotificationType.INFO)
         else:
             await self.cbpi.actor.off(self.base)
             self.state = False
