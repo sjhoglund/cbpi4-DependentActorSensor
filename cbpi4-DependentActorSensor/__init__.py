@@ -7,6 +7,7 @@ import asyncio
 import random
 from cbpi.api import *
 from cbpi.api.base import CBPiBase
+from cbpi.api.sensor import CBPiSensor
 from cbpi.api.dataclasses import NotificationAction, NotificationType
 
 logger = logging.getLogger(__name__)
@@ -29,7 +30,7 @@ class DependentActorSensor(CBPiActor):
 
     async def on(self, power=0):
         sensor_dep = self.cbpi.sensor.find_by_id(self.sensor_dependency)
-        sensor_val = self.get_sensor_value(self.sensor_dependency).get("value")
+        sensor_val = self.cbpi.sensor.get_sensor_value(self.sensor_dependency).get("value")
         
         if sensor_val >= self.sensor_min:
 #             await self.cbpi.actor.on(self.base)
