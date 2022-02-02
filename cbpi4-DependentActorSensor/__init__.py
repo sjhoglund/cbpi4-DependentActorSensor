@@ -42,7 +42,7 @@ class DependentActorSensor(CBPiActor):
             actor_dep_state = False
         
         if (actor_dep_state == False) and (sensor_val >= self.sensor_min):
-            await self.cbpi.actor.on(self.base_actor)
+            await self.cbpi.actor.on(self.base)
             self.state = True
         else:
             await self.cbpi.actor.off(self.base)
