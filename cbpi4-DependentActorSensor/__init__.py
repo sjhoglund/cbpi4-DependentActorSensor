@@ -21,7 +21,7 @@ class DependentActorSensor(CBPiActor):
 
     def on_start(self):
         self.state = False
-        self.base = self.props.get("Base", None)
+        self.base_actor = self.props.get("Base", None)
         self.sensor_dependency = self.props.get("SensorDependency", None)
         self.sensor_min = int(self.props.get("SensorValue", 0))
         self.notification = self.props.get("notification", "Yes")
@@ -33,20 +33,20 @@ class DependentActorSensor(CBPiActor):
         sensor_val = self.cbpi.sensor.get_sensor_value(self.sensor_dependency).get("value")
         
         if sensor_val >= self.sensor_min:
-            await self.cbpi.actor.on(self.base)
+            await self.cbpi.actor.on(self.base_actor)
 #             self.state = True
 #             if self.notification == "Yes":
 #                 self.cbpi.notify("Powering of Actor tbd", "This pass %s" %(sensor_dep.name) ,NotificationType.INFO)
         else:
-            await self.cbpi.actor.off(self.base)
+            await self.cbpi.actor.off(self.base_actor)
             self.state = False
             if self.notification == "Yes":
                 self.cbpi.notify("Powering of Actor prevented", "This is due to the current value of it's dependency %s" %(sensor_dep.name) ,NotificationType.ERROR)
 
 
     async def off(self):
-        logger.info("ACTOR %s OFF " % self.base)
-        await self.cbpi.actor.off(self.base)
+        logger.info("ACTOR %s OFF " % self.base_actor)
+        await self.cbpi.actor.off(self.base_actor)
         self.state = False
 
     def get_state(self):
@@ -54,8 +54,8 @@ class DependentActorSensor(CBPiActor):
     
     async def run(self):
         if self.init == False:
-            if self.base is not None:
-                await self.cbpi.actor.off(self.base)
+            if self.base_actor is not None:
+                await self.cbpi.actor.off(self.base_actor)
                 self.state = False
             self.init = True
         pass
