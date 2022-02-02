@@ -32,7 +32,7 @@ class DependentActorSensor(CBPiActor):
 
     async def on(self, power=0):
         base_actor = self.cbpi.actor.find_by_id(self.base)
-        actor_dep = self.cbpi.actor.find_by_id(self.ActorDependency)
+        actor_dep = self.cbpi.actor.find_by_id(self.actor_dependency)
         sensor_dep = self.cbpi.sensor.find_by_id(self.sensor_dependency)
         sensor_val = self.cbpi.sensor.get_sensor_value(self.sensor_dependency).get("value")
         
