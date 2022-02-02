@@ -31,13 +31,19 @@ class DependentActorSensor(CBPiActor):
     async def on(self, power=0):
         sensor_dep = self.cbpi.sensor.find_by_id(self.sensor_dependency)
         sensor_val = self.cbpi.sensor.get_sensor_value(self.sensor_dependency).get("value")
+        base_actor = self.cbpi.actor.find_by_id(self.base)
         
         if sensor_val >= self.sensor_min:
-#             await self.cbpi.actor.on(self.base)
-#             self.state = True
+            try:
+                await base_actor.instance.on()
+                await self.push_update()
+                self.cbpi.push_update("cbpi/actor/"+self.base, base_actor.to_dict(), True)
+                #self.state = True
+            except Exception as e:
+                self.cbpi.notify("Failed to turn on Actor", "Something is wrong with the call to turn on.",NotificationType.ERROR)
 
-            if self.notification == "Yes":
-                self.cbpi.notify("Powering of Actor tbd", "This pass %s" %(sensor_dep.name) ,NotificationType.INFO)
+#             if self.notification == "Yes":
+#                 self.cbpi.notify("Powering of Actor tbd", "This pass %s" %(sensor_dep.name) ,NotificationType.INFO)
         else:
             await self.cbpi.actor.off(self.base)
             self.state = False
