@@ -6,8 +6,8 @@ from unittest.mock import MagicMock, patch
 import asyncio
 import random
 from cbpi.api import *
-from cbpi.api.base import CBPiBase
-from cbpi.api.sensor import CBPiSensor
+# from cbpi.api.base import CBPiBase
+# from cbpi.api.sensor import CBPiSensor
 from cbpi.api.dataclasses import NotificationAction, NotificationType
 
 logger = logging.getLogger(__name__)
