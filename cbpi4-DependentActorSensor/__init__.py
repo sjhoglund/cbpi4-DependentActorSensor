@@ -6,6 +6,7 @@ from unittest.mock import MagicMock, patch
 import asyncio
 import random
 from cbpi.api import *
+from cbpi.api.base import CBPiBase
 from cbpi.api.dataclasses import NotificationAction, NotificationType
 
 logger = logging.getLogger(__name__)
@@ -20,26 +21,26 @@ class DependentActorSensor(CBPiActor):
     def on_start(self):
         self.state = False
         self.base = self.props.get("Base", None)
-        self.SensorDependency = self.props.get("SensorDependency", None)
-        self.SensorValue = int(self.props.get("SensorValue", 0))
+        self.sensor_dependency = self.props.get("SensorDependency", None)
+        self.sensor_min = int(self.props.get("SensorValue", 0))
         self.notification = self.props.get("notification", "Yes")
         self.init = False
         pass
 
     async def on(self, power=0):
-        sensor_dependency = self.cbpi.sensor.find_by_id(self.SensorDependency)
-        sensor_value = self.cbpi.sensor.get_sensor_value(self.SensorDependency).get("value")
+        sensor_dep = self.cbpi.sensor.find_by_id(self.sensor_dependency)
+        sensor_val = self.get_sensor_value(self.sensor_dependency).get("value")
         
-        if sensor_value >= self.SensorValue:
+        if sensor_val >= self.sensor_min:
 #             await self.cbpi.actor.on(self.base)
 #             self.state = True
             if self.notification == "Yes":
-                self.cbpi.notify("Powering of Actor tbd", "This pass %s" %(sensor_dependency.name) ,NotificationType.INFO)
+                self.cbpi.notify("Powering of Actor tbd", "This pass %s" %(sensor_dep.name) ,NotificationType.INFO)
         else:
             await self.cbpi.actor.off(self.base)
             self.state = False
             if self.notification == "Yes":
-                self.cbpi.notify("Powering of Actor prevented", "This is due to the current value of it's dependency %s" %(sensor_dependency.name) ,NotificationType.ERROR)
+                self.cbpi.notify("Powering of Actor prevented", "This is due to the current value of it's dependency %s" %(sensor_dep.name) ,NotificationType.ERROR)
 
 
     async def off(self):
